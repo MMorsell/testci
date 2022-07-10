@@ -1,0 +1,38 @@
+name: Makefile CI2
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+    
+env:
+  GOVERSION: ${{ inputs.go_version }}
+  GOPROXY: ${{ secrets.goproxy }}
+  GOPRIVATE: ${{ secrets.goprivate }}
+  GONOPROXY: ${{ secrets.gonoproxy }}
+  AWS_REGION: eu-north-1
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v3
+    
+      with:
+        go-version-file: 'go.mod'
+        cache: true
+        cache-dependency-path: go.sum
+    
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+      
+    - name: Run
+      run: make
